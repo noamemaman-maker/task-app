@@ -1,58 +1,19 @@
 -- Enable Stripe integration
-create extension if not exists wrappers with schema extensions;
-create foreign data wrapper stripe_wrapper
-  handler stripe_fdw_handler
-  validator stripe_fdw_validator;
-
-create server stripe_server
-foreign data wrapper stripe_wrapper
-options (
-  api_key_name 'stripe'
-);
-
-create schema stripe;
-
--- Stripe customers table
-create foreign table stripe.customers (
-  id text,
-  email text,
-  name text,
-  description text,
-  created timestamp,
-  attrs jsonb
-)
-server stripe_server
-options (
-  object 'customers',
-  rowid_column 'id'
-);
-
+-- Note: Stripe customer creation should be handled via Edge Functions
+-- This migration sets up the schema and triggers for Stripe integration
 
 -- Function to handle Stripe customer creation
+-- This function is a placeholder - actual Stripe customer creation
+-- should be done via Edge Functions for better error handling and security
 create or replace function public.handle_stripe_customer_creation()
 returns trigger
 security definer
 set search_path = public
 as $$
-declare
-  customer_email text;
 begin
-  -- Get user email
-  select email into customer_email
-  from auth.users
-  where id = new.user_id;
-
-  -- Create Stripe customer
-  insert into stripe.customers (email, name)
-  values (customer_email, new.name);
-  
-  -- Get the created customer ID from Stripe
-  select id into new.stripe_customer_id
-  from stripe.customers
-  where email = customer_email
-  order by created desc
-  limit 1;
-  
+  -- Stripe customer creation is handled via Edge Functions
+  -- The stripe_customer_id will be set when the customer is created
+  -- through the Stripe API via Edge Functions
   return new;
 end;
 $$ language plpgsql;
@@ -64,19 +25,20 @@ create trigger create_stripe_customer_on_profile_creation
   execute function public.handle_stripe_customer_creation();
 
 -- Function to handle Stripe customer deletion
+-- Note: Actual Stripe customer deletion should be handled via Edge Functions
+-- This trigger is kept for potential future use or logging
 create or replace function public.handle_stripe_customer_deletion()
 returns trigger
 security definer
 set search_path = public
 as $$
 begin
+  -- Stripe customer deletion should be handled via Edge Functions
+  -- This function is kept as a placeholder for potential future functionality
   if old.stripe_customer_id is not null then
-    begin
-      delete from stripe.customers where id = old.stripe_customer_id;
-    exception when others then
-      -- Log the error if needed, but continue with the deletion
-      raise notice 'Failed to delete Stripe customer: %', SQLERRM;
-    end;
+    -- Log that a profile with a Stripe customer ID is being deleted
+    -- Actual deletion should be handled via webhook or Edge Function
+    raise notice 'Profile with Stripe customer ID % is being deleted', old.stripe_customer_id;
   end if;
   return old;
 end;
