@@ -107,4 +107,10 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
+  console.log("ENV DEBUG:", {
+    SUPABASE_URL: Deno.env.get("SUPABASE_URL"),
+    STRIPE_SECRET_KEY: Deno.env.get("STRIPE_SECRET_KEY") ? "loaded" : "missing",
+    STRIPE_PRICE_ID: Deno.env.get("STRIPE_PRICE_ID") ? "loaded" : "missing",
+  });
+  
 });
