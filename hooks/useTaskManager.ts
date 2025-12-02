@@ -175,18 +175,29 @@ export function useTaskManager(taskId?: string): UseTaskManagerReturn {
         data: { session },
       } = await supabase.auth.getSession();
 
+      if (!session?.access_token) {
+        throw new Error("No active session. Please sign in again.");
+      }
+
       const response = await fetch(FUNCTION_ENDPOINT, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session!.access_token}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({ title, description }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create task");
+        let errorMessage = "Failed to create task";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorData.message || errorMessage;
+        } catch {
+          // If response isn't JSON, use status text
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
       const taskData = await response.json();

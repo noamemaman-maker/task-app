@@ -6,7 +6,7 @@ import OpenAI from "npm:openai";
 // Load environment variables
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
-const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY")?.trim();
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,7 +21,18 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { title, description } = await req.json();
+    let body;
+    try {
+      body = await req.json();
+    } catch (parseError) {
+      throw new Error("Invalid request body. Expected JSON.");
+    }
+
+    const { title, description } = body;
+
+    if (!title || typeof title !== "string") {
+      throw new Error("Title is required and must be a string");
+    }
 
     console.log("🔄 Creating task with AI suggestions...");
     const authHeader = req.headers.get("Authorization");
@@ -56,42 +67,81 @@ Deno.serve(async (req) => {
 
     if (error) throw error;
 
-    // Initialize OpenAI
-    const openai = new OpenAI({
-      apiKey: OPENAI_API_KEY,
-    });
+    // Try to get AI label suggestion, but don't fail if it errors
+    let label: string | null = null;
+    
+    if (!OPENAI_API_KEY) {
+      console.warn("⚠️ OPENAI_API_KEY not set, skipping AI label suggestion");
+      // Return task without AI label
+      return new Response(JSON.stringify(data), {
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+    }
 
-    // Get label suggestion from OpenAI
-    const prompt = `Based on this task title: "${title}" and description: "${description}", suggest ONE of these labels: work, personal, priority, shopping, home. Reply with just the label word and nothing else.`;
+    try {
+      // Log API key prefix for debugging (first 7 chars only for security)
+      console.log(`🔑 Using OpenAI API key: ${OPENAI_API_KEY.substring(0, 7)}...`);
+      
+      const openai = new OpenAI({
+        apiKey: OPENAI_API_KEY,
+      });
 
-    const completion = await openai.chat.completions.create({
-      messages: [{ role: "user", content: prompt }],
-      model: "gpt-4o-mini",
-      temperature: 0.3,
-      max_tokens: 16,
-    });
+      // Get label suggestion from OpenAI
+      const prompt = `Based on this task title: "${title}" and description: "${description}", suggest ONE of these labels: work, personal, priority, shopping, home. Reply with just the label word and nothing else.`;
 
-    const suggestedLabel = completion.choices[0].message.content
-      ?.toLowerCase()
-      .trim();
+      const completion = await openai.chat.completions.create({
+        messages: [{ role: "user", content: prompt }],
+        model: "gpt-4o-mini",
+        temperature: 0.3,
+        max_tokens: 16,
+      });
 
-    console.log(`✨ AI Suggested Label: ${suggestedLabel}`);
+      const suggestedLabel = completion.choices[0].message.content
+        ?.toLowerCase()
+        .trim();
 
-    // Validate the label
-    const validLabels = ["work", "personal", "priority", "shopping", "home"];
-    const label = validLabels.includes(suggestedLabel) ? suggestedLabel : null;
+      console.log(`✨ AI Suggested Label: ${suggestedLabel}`);
 
-    // Update the task with the suggested label
-    const { data: updatedTask, error: updateError } = await supabaseClient
-      .from("tasks")
-      .update({ label })
-      .eq("task_id", data.task_id)
-      .select()
-      .single();
+      // Validate the label
+      const validLabels = ["work", "personal", "priority", "shopping", "home"];
+      label = validLabels.includes(suggestedLabel) ? suggestedLabel : null;
 
-    if (updateError) throw updateError;
+      // Update the task with the suggested label if we got one
+      if (label) {
+        const { data: updatedTask, error: updateError } = await supabaseClient
+          .from("tasks")
+          .update({ label })
+          .eq("task_id", data.task_id)
+          .select()
+          .single();
 
-    return new Response(JSON.stringify(updatedTask), {
+        if (updateError) {
+          console.warn("⚠️ Failed to update task with label:", updateError.message);
+          // Don't throw - return the task without label
+        } else {
+          return new Response(JSON.stringify(updatedTask), {
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+            },
+          });
+        }
+      }
+    } catch (openaiError: any) {
+      // Log the error but don't fail the request - task was already created
+      console.error("⚠️ OpenAI API error (task created without AI label):", {
+        message: openaiError.message,
+        status: openaiError.status,
+        type: openaiError.type,
+      });
+      // Don't throw - return the task without label
+    }
+
+    // Return the task (with or without label)
+    return new Response(JSON.stringify(data), {
       headers: {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
