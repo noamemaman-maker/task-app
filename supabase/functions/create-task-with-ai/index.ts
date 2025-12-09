@@ -28,10 +28,30 @@ Deno.serve(async (req) => {
       throw new Error("Invalid request body. Expected JSON.");
     }
 
-    const { title, description } = body;
+    const { title, description, status, due_date } = body;
 
     if (!title || typeof title !== "string") {
       throw new Error("Title is required and must be a string");
+    }
+
+    // Validate status if provided
+    const validStatuses = ["not_started", "in_progress", "completed"];
+    const taskStatus = status && validStatuses.includes(status) 
+      ? status 
+      : "not_started";
+
+    // Validate due_date if provided (should be a valid date string)
+    let dueDateValue: string | null = null;
+    if (due_date) {
+      if (typeof due_date !== "string") {
+        throw new Error("due_date must be a string");
+      }
+      // Validate it's a valid date format (YYYY-MM-DD)
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(due_date)) {
+        throw new Error("due_date must be in YYYY-MM-DD format");
+      }
+      dueDateValue = due_date;
     }
 
     console.log("🔄 Creating task with AI suggestions...");
@@ -54,14 +74,28 @@ Deno.serve(async (req) => {
     if (!user) throw new Error("No user found");
 
     // Create the task
+    const taskData: {
+      title: string;
+      description?: string;
+      completed: boolean;
+      status: string;
+      user_id: string;
+      due_date?: string;
+    } = {
+      title,
+      description,
+      completed: false,
+      status: taskStatus,
+      user_id: user.id,
+    };
+
+    if (dueDateValue) {
+      taskData.due_date = dueDateValue;
+    }
+
     const { data, error } = await supabaseClient
       .from("tasks")
-      .insert({
-        title,
-        description,
-        completed: false,
-        user_id: user.id,
-      })
+      .insert(taskData)
       .select()
       .single();
 

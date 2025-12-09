@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Edit, Trash2 } from "lucide-react";
 import { getLabelColors } from "@/lib/labels";
-import { Task } from "@/types/models";
+import { Task, TaskStatus } from "@/types/models";
+import { StatusBadge } from "@/components/StatusBadge";
 
 interface TaskRowProps {
   task: Task;
@@ -18,8 +19,12 @@ const TaskRow = ({ task, onDelete, onToggleComplete }: TaskRowProps) => {
     return dateString.split("T")[0];
   };
 
+  const status: TaskStatus = (task.status as TaskStatus) || "not_started";
+
   return (
-    <TableRow className="hover:bg-muted/50">
+    <TableRow
+      className={`hover:bg-muted/50 ${status === "completed" ? "opacity-50" : ""}`}
+    >
       <TableCell className="py-2">
         <Checkbox
           checked={task.completed!}
@@ -52,6 +57,9 @@ const TaskRow = ({ task, onDelete, onToggleComplete }: TaskRowProps) => {
       </TableCell>
       <TableCell className="py-2 whitespace-nowrap">
         {task.due_date ? formatDate(task.due_date) : ""}
+      </TableCell>
+      <TableCell className="py-2">
+        <StatusBadge status={status} />
       </TableCell>
       <TableCell className="text-right py-2">
         <Button variant="ghost" size="icon" asChild className="h-8 w-8">

@@ -169,7 +169,12 @@ export function useTaskManager(taskId?: string): UseTaskManagerReturn {
     }
   };
 
-  const createTask = async (title: string, description: string) => {
+  const createTask = async (
+    title: string,
+    description: string,
+    status?: string,
+    dueDate?: Date
+  ) => {
     try {
       const {
         data: { session },
@@ -179,13 +184,31 @@ export function useTaskManager(taskId?: string): UseTaskManagerReturn {
         throw new Error("No active session. Please sign in again.");
       }
 
+      const requestBody: {
+        title: string;
+        description: string;
+        status?: string;
+        due_date?: string;
+      } = {
+        title,
+        description,
+      };
+
+      if (status) {
+        requestBody.status = status;
+      }
+
+      if (dueDate) {
+        requestBody.due_date = dueDate.toISOString().split("T")[0];
+      }
+
       const response = await fetch(FUNCTION_ENDPOINT, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ title, description }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {

@@ -1,5 +1,11 @@
 import { Database } from "@/lib/database.types";
 
+// Task Status type
+export type TaskStatus = 
+  | "not_started" 
+  | "in_progress" 
+  | "completed";
+
 // Database Models
 export type Task = Database["public"]["Tables"]["tasks"]["Row"];
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];

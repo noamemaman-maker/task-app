@@ -33,7 +33,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
 import { useTaskManager } from "@/hooks/useTaskManager";
-import { Task } from "@/types/models";
+import { Task, TaskStatus } from "@/types/models";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/hooks/use-toast";
 import Image from "next/image";
@@ -227,6 +227,24 @@ function TaskForm() {
                   {label.label}
                 </SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="grid w-full items-center gap-1.5">
+          <Label>Status</Label>
+          <Select
+            value={(task.status as TaskStatus) || "not_started"}
+            onValueChange={(value) =>
+              updateTask({ status: value as TaskStatus })
+            }
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="not_started">Not Started</SelectItem>
+              <SelectItem value="in_progress">In Progress</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
             </SelectContent>
           </Select>
         </div>

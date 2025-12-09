@@ -48,6 +48,7 @@ export type Database = {
           image_url: string | null
           label: string | null
           rank: number | null
+          status: string
           task_id: string
           title: string
           updated_at: string | null
@@ -61,6 +62,7 @@ export type Database = {
           image_url?: string | null
           label?: string | null
           rank?: number | null
+          status?: string
           task_id?: string
           title: string
           updated_at?: string | null
@@ -74,6 +76,7 @@ export type Database = {
           image_url?: string | null
           label?: string | null
           rank?: number | null
+          status?: string
           task_id?: string
           title?: string
           updated_at?: string | null
