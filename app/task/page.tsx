@@ -31,7 +31,7 @@ import {
 import { labels } from "@/lib/labels";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useTaskManager } from "@/hooks/useTaskManager";
 import { Task, TaskStatus } from "@/types/models";
 import { useAuth } from "@/hooks/useAuth";
@@ -41,6 +41,7 @@ import { useDropzone } from "react-dropzone";
 
 function TaskForm() {
   const params = useSearchParams();
+  const router = useRouter();
   const taskId = params.get("id")!;
   const {
     task,
@@ -90,11 +91,24 @@ function TaskForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // Check if task status is being set to "completed" (will be auto-deleted)
+      const willBeDeleted = (task?.status as TaskStatus) === "completed";
+      
       await saveTask();
-      toast({
-        title: "✅ Task Updated",
-        description: "Task updated successfully",
-      });
+      
+      if (willBeDeleted) {
+        toast({
+          title: "✅ Task Completed",
+          description: "Task has been completed and removed",
+        });
+        // Redirect to dashboard since task was deleted
+        router.push("/dashboard");
+      } else {
+        toast({
+          title: "✅ Task Updated",
+          description: "Task updated successfully",
+        });
+      }
     } catch (error: any) {
       toast({
         title: "❌ Error",

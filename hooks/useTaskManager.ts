@@ -74,6 +74,19 @@ export function useTaskManager(taskId?: string): UseTaskManagerReturn {
       const taskData = taskToSave || task;
       if (!taskData) throw new Error("No task data to save");
 
+      // Auto-delete task if status is "completed"
+      if (taskData.status === "completed") {
+        const { error } = await supabase
+          .from("tasks")
+          .delete()
+          .eq("task_id", taskData.task_id);
+
+        if (error) throw error;
+        // Clear the task from state since it's been deleted
+        setTask(null);
+        return;
+      }
+
       const { error } = await supabase
         .from("tasks")
         .update({
@@ -156,6 +169,7 @@ export function useTaskManager(taskId?: string): UseTaskManagerReturn {
         .from("tasks")
         .select("*")
         .eq("user_id", session!.user.id)
+        .neq("status", "completed") // Filter out completed tasks
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -225,6 +239,21 @@ export function useTaskManager(taskId?: string): UseTaskManagerReturn {
 
       const taskData = await response.json();
       if (!taskData) throw new Error("No data returned from server");
+
+      // If task was created with "completed" status, delete it immediately
+      if (taskData.status === "completed") {
+        const { error: deleteError } = await supabase
+          .from("tasks")
+          .delete()
+          .eq("task_id", taskData.task_id);
+        
+        if (deleteError) {
+          console.error("Error deleting completed task:", deleteError);
+        }
+        // Don't add to tasks array since it's been deleted
+        setError(null);
+        return taskData;
+      }
 
       setTasks([taskData, ...tasks]);
       setError(null);
