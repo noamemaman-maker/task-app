@@ -66,43 +66,6 @@ body {
 
     --radius: 0.5rem;
   }
-
-  /* Dark mode becomes a twilight studio vibe */
-  .dark {
-    --background: 30 8% 10%;      /* warm charcoal */
-    --foreground: 40 20% 92%;     /* soft warm white */
-
-    --card: 30 10% 14%;
-    --card-foreground: 40 20% 92%;
-
-    --popover: 30 10% 14%;
-    --popover-foreground: 40 20% 92%;
-
-    --primary: 106 10% 50%;       /* muted sage glow */
-    --primary-foreground: 30 10% 10%;
-
-    --secondary: 30 8% 18%;
-    --secondary-foreground: 40 20% 92%;
-
-    --muted: 30 8% 20%;
-    --muted-foreground: 40 10% 60%;
-
-    --accent: 18 20% 24%;         /* terracotta shadow */
-    --accent-foreground: 40 20% 92%;
-
-    --destructive: 5 40% 40%;
-    --destructive-foreground: 40 20% 92%;
-
-    --border: 30 8% 20%;
-    --input: 30 8% 20%;
-    --ring: 106 12% 40%;
-
-    --chart-1: 106 20% 50%;
-    --chart-2: 28 30% 50%;
-    --chart-3: 50 20% 50%;
-    --chart-4: 10 15% 45%;
-    --chart-5: 140 15% 40%;
-  }
 }
 
 @layer base {
