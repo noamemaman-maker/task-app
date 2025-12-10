@@ -6,9 +6,9 @@ interface StatusBadgeProps {
 
 export function StatusBadge({ status }: StatusBadgeProps) {
   const styles: Record<TaskStatus, string> = {
-    not_started: "bg-gray-200 text-gray-700",
-    in_progress: "bg-blue-200 text-blue-700",
-    completed: "bg-green-200 text-green-700",
+    not_started: "bg-[hsl(30,15%,85%)] text-[hsl(30,15%,30%)]",      // Light taupe
+    in_progress: "bg-[hsl(106,20%,75%)] text-[hsl(106,25%,30%)]",  // Medium sage green
+    completed: "bg-[hsl(140,15%,70%)] text-[hsl(140,20%,25%)]",    // Dark forest green
   };
 
   const displayText = status.replace("_", " ");

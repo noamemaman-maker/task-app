@@ -2,37 +2,37 @@ export const labels = [
   {
     value: "work",
     label: "Work",
-    "bg-color": "bg-blue-100",
-    "text-color": "text-blue-800",
-    "border-color": "border-blue-300",
+    "bg-color": "bg-[hsl(30,15%,85%)]",      // Light taupe
+    "text-color": "text-[hsl(30,15%,25%)]", // Dark taupe
+    "border-color": "border-[hsl(30,15%,70%)]",
   },
   {
     value: "personal",
     label: "Personal",
-    "bg-color": "bg-green-100",
-    "text-color": "text-green-800",
-    "border-color": "border-green-300",
+    "bg-color": "bg-[hsl(106,20%,75%)]",    // Medium sage green
+    "text-color": "text-[hsl(106,25%,30%)]", // Dark sage
+    "border-color": "border-[hsl(106,20%,65%)]",
   },
   {
     value: "shopping",
     label: "Shopping",
-    "bg-color": "bg-yellow-100",
-    "text-color": "text-yellow-800",
-    "border-color": "border-yellow-300",
+    "bg-color": "bg-[hsl(40,25%,92%)]",     // Warm cream
+    "text-color": "text-[hsl(30,15%,35%)]", // Warm brown
+    "border-color": "border-[hsl(40,20%,80%)]",
   },
   {
     value: "home",
     label: "Home",
-    "bg-color": "bg-purple-100",
-    "text-color": "text-purple-800",
-    "border-color": "border-purple-300",
+    "bg-color": "bg-[hsl(140,15%,70%)]",    // Dark forest green
+    "text-color": "text-[hsl(140,20%,25%)]", // Very dark green
+    "border-color": "border-[hsl(140,15%,60%)]",
   },
   {
     value: "priority",
     label: "Priority",
-    "bg-color": "bg-red-100",
-    "text-color": "text-red-800",
-    "border-color": "border-red-300",
+    "bg-color": "bg-[hsl(30,25%,25%)]",     // Rich dark brown
+    "text-color": "text-[hsl(40,20%,95%)]", // Cream white
+    "border-color": "border-[hsl(30,25%,20%)]",
   },
 ] as const;
 
