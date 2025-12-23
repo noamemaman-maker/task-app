@@ -16,7 +16,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { TaskStatus } from "@/types/models";
@@ -37,6 +37,44 @@ export function CreateTaskForm({ onSubmit }: CreateTaskFormProps) {
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEnhancing, setIsEnhancing] = useState(false);
+  const [enhanceError, setEnhanceError] = useState<string | null>(null);
+
+  const handleEnhanceDescription = async () => {
+    // Skip if description is empty or too short
+    if (!description || description.trim().length < 10) {
+      setEnhanceError("Description must be at least 10 characters long");
+      setTimeout(() => setEnhanceError(null), 3000);
+      return;
+    }
+
+    setEnhanceError(null);
+    setIsEnhancing(true);
+    try {
+      const response = await fetch("/api/ai/enhance-description", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ description }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.text) {
+          setDescription(data.text);
+        }
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        setEnhanceError(errorData.error || "Failed to enhance description");
+      }
+    } catch (error) {
+      console.error("Failed to enhance description:", error);
+      setEnhanceError("Network error. Please check your connection and try again.");
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,6 +114,25 @@ export function CreateTaskForm({ onSubmit }: CreateTaskFormProps) {
           placeholder="Enter task description"
           rows={3}
         />
+        <div className="mt-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleEnhanceDescription();
+            }}
+            disabled={isEnhancing || !description || description.trim().length < 10}
+          >
+            <Sparkles className="mr-2 h-3 w-3" />
+            {isEnhancing ? "Enhancing..." : "Enhance with AI ✨"}
+          </Button>
+          {enhanceError && (
+            <div className="text-red-500 text-xs mt-1">{enhanceError}</div>
+          )}
+        </div>
       </div>
       <div>
         <Label htmlFor="status">Status</Label>
